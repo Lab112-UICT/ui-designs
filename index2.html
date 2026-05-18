@@ -35,7 +35,42 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{overflow-x:hidden;scroll-behavior:auto}
+html{
+  overflow-x:hidden;
+  scroll-behavior:auto;
+  scrollbar-color:var(--dove) var(--blk);
+  scrollbar-width:thin;
+}
+
+/* ══ CUSTOM BLACK & WHITE SCROLLBAR ══ */
+::-webkit-scrollbar {
+  width:10px;
+  height:10px;
+}
+::-webkit-scrollbar-track {
+  background:var(--blk);
+  border-left:1px solid rgba(255,255,255,0.05);
+}
+::-webkit-scrollbar-thumb {
+  background:var(--dove);
+  border:2.5px solid var(--blk);
+  border-radius:10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background:var(--wht);
+}
+
+/* ══ DEEP YELLOW SCROLL PROGRESS BAR ══ */
+#scroll-progress {
+  position:fixed;
+  top:0;left:0;
+  width:0%;height:3.5px;
+  background:#FFCC00; /* Deep golden luxury yellow */
+  z-index:99999; /* Higher than sticky nav, ignores diff inversion */
+  box-shadow:0 0 12px rgba(255,204,0,0.5);
+  transform-origin:left center;
+}
+
 body{
   background:var(--blk);
   color:var(--wht);
@@ -913,6 +948,10 @@ footer{
 /* ══ RESPONSIVE ══ */
 @media(max-width:900px){
   #nav{padding:20px 24px;}
+  #scroll-progress{
+    top:60px !important; /* Flush against bottom edge of 60px mobile nav bar */
+    height:2px !important; /* Sleek, thinner outline on mobile view */
+  }
   .nav-link{display:none;}
   #about{grid-template-columns:1fr;}
   .about-img-wrap{height:50vw;min-height:300px;}
@@ -1186,6 +1225,9 @@ footer{
 </style>
 </head>
 <body>
+
+<!-- ── SCROLL PROGRESS ── -->
+<div id="scroll-progress"></div>
 
 <!-- ── CURSOR ── -->
 <div id="c-dot"></div>
@@ -2368,6 +2410,19 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         behavior: 'smooth'
       });
     }
+  });
+});
+
+// ── 24. TOP SCROLL PROGRESS BAR ──
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+  
+  gsap.to('#scroll-progress', {
+    width: pct + '%',
+    duration: 0.15,
+    ease: 'power1.out'
   });
 });
 
