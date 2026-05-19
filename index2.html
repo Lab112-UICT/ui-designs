@@ -348,40 +348,21 @@
     /* ── ARTIST SIGNATURE ── */
     .hero-signature {
       font-family: var(--ff-sig);
-      /* Slightly smaller than AXIOM to create contrast depth */
       font-size: clamp(52px, 9.5vw, 140px);
-      /* Thin pen-stroke: transparent fill + hairline stroke only */
       color: transparent;
       -webkit-text-stroke: 0.6px #D0001A;
       text-shadow:
         0 0 20px rgba(208, 0, 26, 0.4),
         0 0 50px rgba(208, 0, 26, 0.15);
       position: absolute;
-      /*
-        'O' position: Anton font letter widths at 16vw:
-        A ≈ 0.67em, X ≈ 0.78em, I ≈ 0.44em → AXI ≈ 1.89 × 16vw ≈ 22.5vw
-        With letter-spacing -0.01em × 3 gaps ≈ -0.48vw → net ≈ 22vw
-      */
       left: 22vw;
-      /*
-        Vertically cross through mid-height of the AXIOM letters.
-        h1 line-height 0.88 at 16vw ≈ 14.1vw total height → 20% ≈ 2.8vw down
-      */
       top: 18%;
       white-space: nowrap;
       pointer-events: none;
       z-index: 3;
+      /* Hidden by default — GSAP controls the reveal */
       opacity: 0;
-      transform: translateY(10px);
-      animation: sigReveal 1.4s cubic-bezier(0.22, 1, 0.36, 1) 1.2s forwards;
       letter-spacing: -0.02em;
-    }
-
-    @keyframes sigReveal {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     /* Mobile: precise 'O' tracking using font-size math */
@@ -780,10 +761,11 @@
       display: flex;
       align-items: center;
       height: 100%;
-      gap: 20px;
+      gap: 0;
       padding: 80px 80px 0 80px;
-      /* Shifted down to clear header space */
       will-change: transform;
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
     }
 
     /* Intro spacer card */
@@ -821,13 +803,19 @@
       flex-shrink: 0;
       width: clamp(280px, 30vw, 400px);
       height: 65vh;
-      /* Optimized height to prevent collision with top headers */
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
       background: #000000;
-      /* Pure black foundation to absorb subpixel gap leaks */
       cursor: none;
+      /* Spacing between cards (replaces gap to avoid subpixel seams) */
+      margin-right: 20px;
+      /* GPU compositing + seam masking */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      transform: translateZ(0);
+      /* Black outline masks any residual 1px subpixel gaps */
+      outline: 3px solid #000000;
+      outline-offset: -1px;
     }
 
     .album-card-img {
@@ -837,6 +825,9 @@
       will-change: transform;
       transition: scale 0.6s cubic-bezier(0.25, 1, 0.5, 1);
       scale: 1;
+      /* Prevent edge flash on the image layer too */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
 
     .album-card:hover .album-card-img {
@@ -845,10 +836,11 @@
 
     .album-card-overlay {
       position: absolute;
-      inset: -2px;
-      /* Slight bleed to overlap border and ensure full container filling */
+      inset: 0;
       background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 80%);
       z-index: 1;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
 
     .album-card-info {
@@ -902,15 +894,19 @@
       flex-shrink: 0;
       width: clamp(220px, 22vw, 300px);
       height: 65vh;
-      /* Optimized height to match cards */
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       padding: 28px;
-      box-shadow: inset 1px 0 0 0 rgba(255, 255, 255, 0.07);
       background: #000000;
       position: relative;
       overflow: hidden;
+      margin-right: 20px;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      transform: translateZ(0);
+      outline: 3px solid #000000;
+      outline-offset: -1px;
     }
 
     .album-wipe {
@@ -2785,7 +2781,13 @@
       .from('#hero-bg', { scale: 1.12, duration: 2.2, ease: 'power3.out' })
       .from('.hero-label', { y: 20, opacity: 0, duration: 0.9, ease: 'power3.out' }, '-=1.6')
       .from('#ht-1', { y: '100%', duration: 1.1, ease: 'power4.out', clipPath: 'inset(0 0 100% 0)' }, '-=1.2')
-      .from('.hero-tagline', { y: 20, opacity: 0, duration: 0.8, ease: 'power3.out' }, '-=0.5')
+      /* Signature in-place reveal: materializes after AXIOM lands */
+      .fromTo('.hero-signature',
+        { opacity: 0, filter: 'blur(6px)' },
+        { opacity: 1, filter: 'blur(0px)', duration: 1.4, ease: 'power2.out' },
+        '-=0.2'
+      )
+      .from('.hero-tagline', { y: 20, opacity: 0, duration: 0.8, ease: 'power3.out' }, '-=0.9')
       .from('.hero-bottom', { y: 16, opacity: 0, duration: 0.8, ease: 'power3.out' }, '-=0.4')
       .from('.v-text', { opacity: 0, duration: 1, stagger: 0.2 }, '-=0.6')
       .from('.hero-ring', { scale: 0.85, opacity: 0, duration: 1.4, ease: 'power2.out' }, '-=1.2');
